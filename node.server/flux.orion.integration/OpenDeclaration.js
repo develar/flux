@@ -13,7 +13,7 @@
 
 define(function (require) {
 
-var io = require('lib/socket.io');
+var io = require('socket.io');
 var Deferred = require('orion/Deferred');
 var authorize = require('authorize');
 
@@ -32,18 +32,15 @@ var OpenDeclaration = (function() {
 	 * @class Provides operations on files, folders, and projects.
 	 * @name FileServiceImpl
 	 */
-	function OpenDeclaration(host, port, root) {
+	function OpenDeclaration(wsUrl, root) {
 		this._rootLocation = root;
-		this._host = host;
-		this._port = port;
+		this._wsUrl = wsUrl;
 	}
 
 	OpenDeclaration.prototype = /**@lends flux.NavigateAction.prototype */
 	{
 		_createSocket: function (user) {
-			this.socket = io.connect(this._host, {
-				port: this._port
-			});
+			this.socket = io.connect(this._wsUrl);
 
 			this._resourceUrl = null;
 

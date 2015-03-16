@@ -1,3 +1,4 @@
+orion.client
 bin/
 *.class
 node_modules/

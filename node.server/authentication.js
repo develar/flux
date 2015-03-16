@@ -36,10 +36,13 @@ var SUPER_USER = '$super$'; //A special user id that identifies the super user.
 
 var SESSION_SECRET = githubSecret.secret || 'no auth so use whatever'; //reuse our github client secret also as session secret.
 
-var sessionStore = new express.session.MemoryStore(); //TODO: use database
-var session = express.session({
+var expressSession = require('express-session');
+var sessionStore = new expressSession.MemoryStore(); //TODO: use database
+var session = expressSession({
 	secret: SESSION_SECRET,
-	store: sessionStore
+	store: sessionStore,
+	resave: true,
+	saveUninitialized: true
 });
 
 var URIjs = require('URIjs');
@@ -230,14 +233,15 @@ function handshakeCompose() {
  * handler returning a new 'logging handler' delegating to it.
  */
 function addLogging(shaker) {
-	return function (hsd, accept) {
-		return shaker(hsd, function (err, accepted) {
+	return function (socket, next) {
+		shaker(socket.request, function (err, accepted) {
 			if (accepted) {
 				console.log('User authenticated: ', hsd.fluxUser);
+				next();
 			} else {
 				console.log('Autentication REJECTED: ',err, hsd);
+				next(err);
 			}
-			return accept(err, accepted);
 		});
 	};
 }
@@ -247,8 +251,7 @@ function addLogging(shaker) {
  * This function is supposed to verify whether connection can be authorized.
  */
 var socketIoHandshake = addLogging(handshakeCompose(
-	tokenHandshake,			// Java and nodejs clients use this, also browser clients connecting 'cross domain'
-							// use this.
+	tokenHandshake,			// Java and nodejs clients use this, also browser clients connecting 'cross domain' use this.
 	sessionCookieHandshake  // browser clients from same host as flux websocket use this
 ));
 //IMORTANT note about order of handshake handlers:
@@ -270,7 +273,6 @@ var socketIoHandshake = addLogging(handshakeCompose(
  * 'next' midleware is only called for authenticated requests.
  */
 function ensureAuthenticated(req, res, next) {
-	var ok = req.isAuthenticated();
 	if (req.isAuthenticated()) {
 		return next();
 	}

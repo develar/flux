@@ -1,0 +1,6 @@
+node_modules
+web-editor
+nginx-config
+flux-static
+flux.orion.integration
+manifest.yml

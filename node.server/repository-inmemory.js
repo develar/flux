@@ -14,9 +14,9 @@
 var sys = require('sys');
 var crypto = require('crypto');
 
-var InMemoryRepository = function() {
+function InMemoryRepository() {
 	this.storage = {};
-};
+}
 
 exports.Repository = InMemoryRepository;
 

@@ -11,7 +11,7 @@
 *******************************************************************************/
 /*global require console exports*/
 
-var RestRepository = function(expressapp, repository) {
+function RestRepository(expressapp, repository) {
 	this.repository = repository;
 	
 	expressapp.get('/api/:username', this.getProjects.bind(this));
@@ -22,7 +22,7 @@ var RestRepository = function(expressapp, repository) {
 	expressapp.get('/api/:username/:project/:resource(*)', this.getResource.bind(this));
 	expressapp.put('/api/:username/:project/:resource(*)', this.putResource.bind(this));
 	expressapp.post('/api/:username/:project/:resource(*)', this.postResource.bind(this));
-};
+}
 
 exports.RestRepository = RestRepository;
 

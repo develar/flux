@@ -1,0 +1,47 @@
+# if you change rabbitmq service name, you can encounter "Mnesia could not connect to any nodes." - just rename node name, start, and rename back.
+mq:
+  image: rabbitmq:3-management
+  # https://github.com/docker-library/rabbitmq/issues/6 I have no idea how it will be going in a Tutum.
+  hostname: flux
+#  ports:
+#    - "5672:5672"
+db:
+  image: mongo:3
+#  ports:
+#    - "27017:27017"
+app:
+  image: node:wheezy
+  links:
+   - mq
+   - db
+  environment:
+    HOST: 0.0.0.0
+    PORT: 80
+    DB_HOST: db
+    #USE_IN_MEMORY_DB: true
+    DB_NAME: flux-db
+    MQ_HOST: mq
+    DEBUG: "express:*, socket.io:socket"
+    #DEBUG: "*"
+  volumes:
+    - node.server:/app
+  expose:
+    - "3000"
+  ports:
+    - "8585:5858"
+  working_dir: /app
+  #command: /bin/sh -c "npm install && node --debug-brk=5858 startup-all-in-one.js"
+  command: /bin/sh -c "npm install && node startup-all-in-one.js"
+web:
+  image: develar/orion-client:nomin
+  links:
+     - app
+  ports:
+    - 80:80
+  volumes:
+    - node.server/nginx-config:/config:ro
+    # all this stuff should be in one directory, but we want to mimize our fork changes
+    - node.server/flux-static:/static1:ro
+    - node.server/web-editor:/static2/client:ro
+    - node.server/node_modules/URIjs/src:/static3/client/js/URIjs:ro
+    - node.server/flux.orion.integration:/static4/orion-plugin:ro

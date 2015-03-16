@@ -13,16 +13,16 @@
 require.config({
     packages: [
         {name: "when", location: "bower_components/when", main: "when"},
-        {name: "rest", location: "bower_components/rest", main: "rest"}
+        {name: "rest", location: "bower_components/rest", main: "browser"},
+        {name: "socket.io", location: "bower_components/socket.io-client", main: "socket.io"}
     ]
 });
-
 
 require(["orion/Deferred", "orion/plugin", "FluxEditor", "FluxFileSystem", "OpenDeclaration", "lib/domReady!" ],
 function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenDeclaration) {
 
 //We used 'domReady' so don't need to use window.onload. (domready! implies window is loaded before
-// this code is allwed to run.
+// this code is allowed to run.
 //
 // If we do not use domReady, then when we get here it may in
 // already be too late to capture the window.onLoad event.
@@ -40,16 +40,19 @@ function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenD
 		'Version' : "0.1",
 		'Description' : "Flux Integration",
 		'top' : base,
-		'pattern' : base,
+		// orion client: c12f972	07/08/14 18:35	Silenio Quarti*	change orion file client pattern to "/file" instead of "/"
+		'pattern' : "^("  + base + ")|(/file)",
 		'login' : 'http://'+host+':'+port+'/auth/github'
 	};
 
 	var provider = new PluginProvider(headers);
 
-	var fileService = new FluxFileSystem(host, wsport, base);
+	var wsUrl = "http://" + host + ":" + wsport;
+  var fileService = new FluxFileSystem(wsUrl, base);
+
 	provider.registerService("orion.core.file", fileService, headers);
 
-	var editorService = new FluxEditor(host, wsport, base);
+	var editorService = new FluxEditor(wsUrl, base);
 
    provider.registerServiceProvider("orion.page.link.category", null, {
 		id: "flux",
@@ -94,7 +97,7 @@ function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenD
 	    	'contentType' : [ "text/x-java-source" ]
 	 	}
 	);
-	var openDeclaration = new OpenDeclaration(host, wsport, base);
+	var openDeclaration = new OpenDeclaration(wsUrl, base);
 	provider.registerService("orion.edit.command",
 		openDeclaration,
 		{

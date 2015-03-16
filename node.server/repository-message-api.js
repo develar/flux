@@ -11,10 +11,10 @@
 *******************************************************************************/
 /*global require console exports*/
 
-var MessagesRepository = function(repository) {
+function MessagesRepository(repository) {
 	this.repository = repository;
 	this.socket = null;
-};
+}
 
 exports.MessagesRepository = MessagesRepository;
 

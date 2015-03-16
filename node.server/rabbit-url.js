@@ -11,7 +11,11 @@
 *******************************************************************************/
 
 function rabbitUrl() {
-	if (process.env.VCAP_SERVICES) {
+	var mqHost = process.env.MQ_HOST;
+	if (mqHost != null) {
+		return "amqp://" + mqHost;
+	}
+	else if (process.env.VCAP_SERVICES) {
 		var svcInfo = JSON.parse(process.env.VCAP_SERVICES);
 		console.log('VCAP_SERVICES = ', svcInfo);
 		for (var label in svcInfo) {

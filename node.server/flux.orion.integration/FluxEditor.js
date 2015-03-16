@@ -9,8 +9,6 @@
  * Contributors: Pivotal Software Inc. - initial API and implementation
  ******************************************************************************/
 
-
-
 /*global define CryptoJS */
 /*jslint forin:true devel:true*/
 
@@ -18,7 +16,7 @@ define(function (require) {
 
 require('lib/sha1'); //Not AMD defines 'CryptoJS global variable.
 
-var io = require('lib/socket.io');
+var io = require('socket.io');
 var Deferred = require('orion/Deferred');
 var authorize = require('authorize');
 
@@ -64,19 +62,15 @@ var FluxEditor = (function() {
 	 * @class Provides operations on files, folders, and projects.
 	 * @name FileServiceImpl
 	 */
-	function FluxEditor(host, port, root) {
+	function FluxEditor(wsUrl, root) {
 		this._rootLocation = root;
-		this._port = port;
-		this._host = host;
+		this._wsUrl = wsUrl;
 	}
 
 	FluxEditor.prototype = /**@lends eclipse.FluxEditor.prototype */
 	{
 		_createSocket: function (user) {
-			this.socket = io.connect(
-				this._host, {
-				port: this._port
-			});
+			this.socket = io.connect(this._wsUrl);
 
 			this._resourceUrl = null;
 
@@ -538,8 +532,6 @@ var FluxEditor = (function() {
 		}
 		
 	};
-
-
 
 	return FluxEditor;
 }());

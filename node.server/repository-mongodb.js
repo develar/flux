@@ -12,17 +12,15 @@
 /*global require console Buffer exports*/
 
 var mongo = require('mongodb');
-var crypto = require('crypto');
 
 var MongoClient = mongo.MongoClient;
 var GridStore = mongo.GridStore;
 
-var MongoDBRepository = function() {
+function MongoDBRepository() {
 	this.mongodb = null;
 	this.notificationSender = null;
 
-	MongoClient.connect("mongodb://localhost:27017/flight-db", function(err, db) {
-
+	MongoClient.connect("mongodb://" + (process.env.DB_HOST || "localhost") + ":27017/" + (process.env.DB_NAME || "flight-db"), function(err, db) {
 		if (err) {
 			this.mongodb = undefined;
 			return console.dir(err);
@@ -30,7 +28,7 @@ var MongoDBRepository = function() {
 
 		this.mongodb = db;
 	}.bind(this));
-};
+}
 
 exports.Repository = MongoDBRepository;
 

@@ -25,7 +25,6 @@ console.log('Express server started on port ' + port);
 
 // create and configure socket.io
 var io = require('socket.io').listen(server);
-io.set('transports', ['websocket']);
 
 // create and configure services
 var rabbitConnector = require('./rabbit-connector');

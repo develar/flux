@@ -12,7 +12,7 @@
 define(function(require) {
 
 var Deferred = require('orion/Deferred');
-var io = require('lib/socket.io');
+var io = require('socket.io');
 require('lib/sha1'); //Not AMD. Defines 'CryptoJS global.
 
 var authorize = require('authorize');
@@ -87,10 +87,9 @@ var FluxFileSystem = (function() {
 	 * @class Provides operations on files, folders, and projects.
 	 * @name FileServiceImpl
 	 */
-	function FluxFileSystem(host, port, root) {
+	function FluxFileSystem(wsUrl, root) {
 		this._rootLocation = root;
-		this._port = port;
-		this._host = host;
+		this._wsUrl = wsUrl;
 	}
 
 	FluxFileSystem.prototype = /**@lends eclipse.FluxFileSystem.prototype */
@@ -105,9 +104,7 @@ var FluxFileSystem = (function() {
 			}
 			console.log('Create socket for ', user);
 			this._connectedToChannel = new Deferred();
-			this.socket = io.connect(this._host, {
-				port: this._port
-			});
+			this.socket = io.connect(this._wsUrl);
 
 			var self = this;
 
