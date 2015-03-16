@@ -1,3 +1,7 @@
+# JetBrains Fork
+* [Nginx](http://nginx.org) serves static content instead of [Express](http://expressjs.com).
+
+
 # Eclipse Flux
 
   Project "Eclipse Flux" is prototype work to evaluate possible future cloud-based developer
