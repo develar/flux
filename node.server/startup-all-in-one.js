@@ -11,10 +11,6 @@
 *******************************************************************************/
 /*global require console exports process __dirname*/
 
-require("./tcpProxy");
-
-debugger;
-
 var URI = require('URIjs');
 var path = require('path');
 var bodyParser = require('body-parser');
@@ -128,6 +124,11 @@ var rabbitConnector = require('./rabbit-connector');
 io.sockets.on('connection', function (socket) {
 	rabbitConnector.connectWebSocket(socket);
 });
+
+if (true) {
+	// node.server — repository synchronizer should be separate service
+	return
+}
 
 /////////////////////////////////////////////////////////////////////////
 
