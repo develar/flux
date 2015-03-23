@@ -14,12 +14,22 @@ require.config({
     packages: [
         {name: "when", location: "bower_components/when", main: "when"},
         {name: "rest", location: "bower_components/rest", main: "browser"},
-        {name: "socket.io", location: "bower_components/socket.io-client", main: "socket.io"}
-    ]
+        {name: "socket.io", location: "bower_components/socket.io-client", main: "socket.io"},
+    ],
+	paths: {
+		"bluebird": "bower_components/bluebird/js/browser/bluebird.min",
+		"sockjs": "bower_components/sockjs-client/dist/sockjs",
+		"stomp": "bower_components/stomp-websocket/lib/stomp"
+	},
+	shim: {
+		'stomp': {
+			exports: "window.Stomp"
+		}
+	}
 });
 
-require(["orion/Deferred", "orion/plugin", "FluxEditor", "FluxFileSystem", "OpenDeclaration", "lib/domReady!" ],
-function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenDeclaration) {
+require(["orion/Deferred", "orion/plugin", "FluxEditor", "FluxFileSystem", "OpenDeclaration", "lib/domReady!", "stomp-client"],
+function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenDeclaration, ignored, stompClient) {
 
 //We used 'domReady' so don't need to use window.onload. (domready! implies window is loaded before
 // this code is allowed to run.
@@ -35,6 +45,9 @@ function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenD
 	}
 	var base = "flux://" + host + ":" + wsport + "/";
 
+	var stompConnector = new stompClient.StompConnector();
+	stompConnector.connect(host, "defaultuser", "password")
+
 	var headers = {
 		'Name' : "Flux",
 		'Version' : "0.1",
@@ -48,7 +61,7 @@ function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenD
 	var provider = new PluginProvider(headers);
 
 	var wsUrl = "http://" + host + ":" + wsport;
-  var fileService = new FluxFileSystem(wsUrl, base);
+  var fileService = new FluxFileSystem(stompConnector, base);
 
 	provider.registerService("orion.core.file", fileService, headers);
 

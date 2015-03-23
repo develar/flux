@@ -15,6 +15,8 @@ var Deferred = require('orion/Deferred');
 var io = require('socket.io');
 require('lib/sha1'); //Not AMD. Defines 'CryptoJS global.
 
+var stompClient = require('stomp-client');
+
 var authorize = require('authorize');
 
 function assignAncestry(parents, childrenDepthMap, depth) {
@@ -87,118 +89,118 @@ var FluxFileSystem = (function() {
 	 * @class Provides operations on files, folders, and projects.
 	 * @name FileServiceImpl
 	 */
-	function FluxFileSystem(wsUrl, root) {
+	function FluxFileSystem(stompClient, root) {
 		this._rootLocation = root;
-		this._wsUrl = wsUrl;
+		this.stompClient = stompClient
 	}
 
 	FluxFileSystem.prototype = /**@lends eclipse.FluxFileSystem.prototype */
 	{
 		_createSocket: function (user) {
-			if (this._connectedToChannel) {
-				//Don't know why, but orion is calling us twice in a row and
-				//we end up in here a second time before we are done creating our socket.
-				//We should never create more than one socket, though. So bail out of here.
-				console.log('STOP! no second socket!');
-				return;
-			}
-			console.log('Create socket for ', user);
-			this._connectedToChannel = new Deferred();
-			this.socket = io.connect(this._wsUrl);
+			//if (this._connectedToChannel) {
+			//	//Don't know why, but orion is calling us twice in a row and
+			//	//we end up in here a second time before we are done creating our socket.
+			//	//We should never create more than one socket, though. So bail out of here.
+			//	console.log('STOP! no second socket!');
+			//	return;
+			//}
+			//console.log('Create socket for ', user);
+			//this._connectedToChannel = new Deferred();
+			//this.socket = io.connect(this._wsUrl);
 
 			var self = this;
 
-			this.socket.on('connect', function() {
-	//			while (user && !self._connectedToChannel) {
-					self.socket.emit('connectToChannel', {
-						'channel' : user
-					}, function(answer) {
-						if (answer.connectedToChannel) {
-							self._connectedToChannel.resolve();
-							console.log("FileSystem connected to FLUX channel: " + user);
-						} else {
-							self._connectedToChannel.reject(answer.error);
-						}
-					});
-	//			}
-			});
+	//		this.socket.on('connect', function() {
+	////			while (user && !self._connectedToChannel) {
+	//				self.socket.emit('connectToChannel', {
+	//					'channel' : user
+	//				}, function(answer) {
+	//					if (answer.connectedToChannel) {
+	//						self._connectedToChannel.resolve();
+	//						console.log("FileSystem connected to FLUX channel: " + user);
+	//					} else {
+	//						self._connectedToChannel.reject(answer.error);
+	//					}
+	//				});
+	////			}
+	//		});
 
-			this.socket.on('getProjectsResponse', function(data) {
-				if (data.username === user) {
-					self._handleMessage(data);
-				}
-			});
+			//this.socket.on('getProjectsResponse', function(data) {
+			//	if (data.username === user) {
+			//		self._handleMessage(data);
+			//	}
+			//});
+      //
+			//this.socket.on('getProjectResponse', function(data) {
+			//	if (data.username === user) {
+			//		self._handleMessage(data);
+			//	}
+			//});
+      //
+			//this.socket.on('getResourceResponse', function(data) {
+			//	if (data.username === user) {
+			//		self._handleMessage(data);
+			//	}
+			//});
 
-			this.socket.on('getProjectResponse', function(data) {
-				if (data.username === user) {
-					self._handleMessage(data);
-				}
-			});
+			//this.socket.on('resourceStored', function(data) {
+			//	if (data.username === user) {
+			//		var resource = self._createOrionResource(data);
+			//		var parentPath = resource.Location.substr(0, resource.Location.lastIndexOf('/'));
+      //
+			//		self._findFromLocation(parentPath).then(function(parent) {
+			//			var foundResource = parent._childrenCache ? parent._childrenCache[resource.Name] : null;
+			//			if (foundResource) {
+			//				if (foundResource.LocalTimeStamp < resource.LocalTimeStamp) {
+			//					foundResource.LocalTimeStamp = resource.LocalTimeStamp;
+			//					foundResource.ETag = resource.ETag;
+			//				}
+			//				_cleanSaves(foundResource);
+			//			} else {
+			//				if (!parent.Children) {
+			//					parent.Children = [];
+			//				}
+			//				parent.Children.push(resource);
+			//				if (!parent._childrenCache) {
+			//					parent._childrenCache = {};
+			//				}
+			//				parent._childrenCache[resource.Name] = resource;
+			//				resource.Parents = [ parent ];
+			//				_cleanSaves(resource);
+			//			}
+			//		});
+			//	}
+			//	self._handleMessage(data);
+			//});
 
-			this.socket.on('getResourceResponse', function(data) {
-				if (data.username === user) {
-					self._handleMessage(data);
-				}
-			});
+			//this.socket.on('getResourceRequest', function(data) {
+			//	if (data.username === user) {
+			//		var resource = self._createOrionResource(data);
+			//		var cachedSave = saves[resource.Location];
+			//		if (cachedSave
+			//			&& cachedSave.hash === resource.ETag
+			//			&& cachedSave.timestamp === resource.LocalTimeStamp
+			//			&& cachedSave.username === data.username) {
+      //
+			//			self.sendMessage("getResourceResponse", {
+			//				'callback_id' : data.callback_id,
+			//				'requestSenderID' : data.requestSenderID,
+			//				'username' : cachedSave.username,
+			//				'project' : cachedSave.project,
+			//				'resource' : cachedSave.resource,
+			//				'timestamp' : cachedSave.timestamp,
+			//				'type' : cachedSave.type,
+			//				'hash' : cachedSave.hash,
+			//				'content' : cachedSave.content
+			//			});
+			//		}
+			//		self._handleMessage(data);
+			//	}
+			//});
 
-			this.socket.on('resourceStored', function(data) {
-				if (data.username === user) {
-					var resource = self._createOrionResource(data);
-					var parentPath = resource.Location.substr(0, resource.Location.lastIndexOf('/'));
-
-					self._findFromLocation(parentPath).then(function(parent) {
-						var foundResource = parent._childrenCache ? parent._childrenCache[resource.Name] : null;
-						if (foundResource) {
-							if (foundResource.LocalTimeStamp < resource.LocalTimeStamp) {
-								foundResource.LocalTimeStamp = resource.LocalTimeStamp;
-								foundResource.ETag = resource.ETag;
-							}
-							_cleanSaves(foundResource);
-						} else {
-							if (!parent.Children) {
-								parent.Children = [];
-							}
-							parent.Children.push(resource);
-							if (!parent._childrenCache) {
-								parent._childrenCache = {};
-							}
-							parent._childrenCache[resource.Name] = resource;
-							resource.Parents = [ parent ];
-							_cleanSaves(resource);
-						}
-					});
-				}
-				self._handleMessage(data);
-			});
-
-			this.socket.on('getResourceRequest', function(data) {
-				if (data.username === user) {
-					var resource = self._createOrionResource(data);
-					var cachedSave = saves[resource.Location];
-					if (cachedSave
-						&& cachedSave.hash === resource.ETag
-						&& cachedSave.timestamp === resource.LocalTimeStamp
-						&& cachedSave.username === data.username) {
-
-						self.sendMessage("getResourceResponse", {
-							'callback_id' : data.callback_id,
-							'requestSenderID' : data.requestSenderID,
-							'username' : cachedSave.username,
-							'project' : cachedSave.project,
-							'resource' : cachedSave.resource,
-							'timestamp' : cachedSave.timestamp,
-							'type' : cachedSave.type,
-							'hash' : cachedSave.hash,
-							'content' : cachedSave.content
-						});
-					}
-					self._handleMessage(data);
-				}
-			});
-
-			this.socket.on("resourceCreated", function(data) {
-	//			console.log("resourceCreated: " + JSON.stringify(data));
-			});
+	//		this.socket.on("resourceCreated", function(data) {
+	////			console.log("resourceCreated: " + JSON.stringify(data));
+	//		});
 
 		}, //createSocket
 
@@ -218,7 +220,6 @@ var FluxFileSystem = (function() {
 			//Avoid loosing messages by sending them before we are properly connected!
 			return self._connectedToChannel.then(function() {
 				console.log('==>', type, message);
-	//			if (this._connectedToChannel) {
 					if (callbacks) {
 						message.callback_id = generateCallbackId();
 						callbacksCache[message.callback_id] = callbacks;
@@ -227,9 +228,6 @@ var FluxFileSystem = (function() {
 					}
 					self.socket.emit(type, message);
 					return true;
-	//			} else {
-	//				return false;
-	//			}
 			});
 		},
 		_handleMessage: function(data) {
@@ -456,9 +454,7 @@ var FluxFileSystem = (function() {
 				}
 			};
 
-			this.socket.once("getProjectsResponse", projectsResponseHandler);
-
-			this.sendMessage("getProjectsRequest", { 'username' : this.user });
+			this.stompClient.request("projects", "getAll").done(projectsResponseHandler);
 
 			return deferred;
 		}),
