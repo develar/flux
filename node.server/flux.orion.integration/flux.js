@@ -39,104 +39,103 @@ function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenD
 
 	var host = location.hostname;
 	var port = location.port || 80;
-	var wsport = port;
+	var wsPort = port;
 	if (host.indexOf("cfapps.io")>0) {
-		wsport = 4443; // Cloudfoundry weirdness: all websocket traffic re-routed on this port.
+		wsPort = 4443; // Cloudfoundry weirdness: all websocket traffic re-routed on this port.
 	}
-	var base = "flux://" + host + ":" + wsport + "/";
 
 	var stompConnector = new stompClient.StompConnector();
-	stompConnector.connect(host, "defaultuser", "password")
+	stompConnector.connect(host, "defaultuser", "password").done(function () {
+		var base = "flux://" + host + ":" + wsPort + "/";
+		var headers = {
+			'Name': "Flux",
+			'Version': "0.1",
+			'Description': "Flux Integration",
+			'top': base,
+			// orion client: c12f972	07/08/14 18:35	Silenio Quarti*	change orion file client pattern to "/file" instead of "/"
+			'pattern': "^(" + base + ")|(/file)",
+			'login': 'http://' + host + ':' + port + '/auth/github'
+		};
 
-	var headers = {
-		'Name' : "Flux",
-		'Version' : "0.1",
-		'Description' : "Flux Integration",
-		'top' : base,
-		// orion client: c12f972	07/08/14 18:35	Silenio Quarti*	change orion file client pattern to "/file" instead of "/"
-		'pattern' : "^("  + base + ")|(/file)",
-		'login' : 'http://'+host+':'+port+'/auth/github'
-	};
+		var provider = new PluginProvider(headers);
 
-	var provider = new PluginProvider(headers);
+		var wsUrl = "http://" + host + ":" + wsPort;
+		var fileService = new FluxFileSystem(stompConnector, base);
 
-	var wsUrl = "http://" + host + ":" + wsport;
-  var fileService = new FluxFileSystem(stompConnector, base);
+		provider.registerService("orion.core.file", fileService, headers);
 
-	provider.registerService("orion.core.file", fileService, headers);
+		var editorService = new FluxEditor(wsUrl, base);
 
-	var editorService = new FluxEditor(wsUrl, base);
-
-   provider.registerServiceProvider("orion.page.link.category", null, {
-		id: "flux",
-		name: "Flux",
+		provider.registerServiceProvider("orion.page.link.category", null, {
+			id: "flux",
+			name: "Flux",
 //		nameKey: "Flux",
 //		nls: "orion-plugin/nls/messages",
-		imageDataURI: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAABuwAAAbsBOuzj4gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEqSURBVDiNpdMxS9thEAbwX/6Gbm6CkrVjoYuDhygoWfwEpW4dikLngpMgguDqEopjp4JfIHMHc5CWTlla2kkEhwwuBRFNhyQQ038SxZvu3ueeu/e5971Kr9fzHCuexX5KgcyslJ1XZknIzB18RA3n2I6IbmmBzJzHKjoRcZGZb/AFo92/ox4R1w8kZOYifqCJ35n5CZ/HyLCMD8OgOgIc4uXAf4HdKcpWhs7oEOtTCNMLZObGSPfH2FJmvoZKq9Waw1f94Y3bH/05HJRgHWxWsTeBfIu3+IZ1/0t8hf0CWxOueRQR7Yjo4T3+luS8K7BQAlziNDOHr9RFoyRvvkCrBKgNiqwN4rb+bxy3nwXOcDdBxqxVbRQR0dQf1hXuxxLKFugGv3AcESf/AFmNUKHs4+bxAAAAAElFTkSuQmCC",
-		order: 5
-	});
-	provider.registerServiceProvider("orion.page.link", null, {
-		id: "flux.deployer",
-		name: "CF Deployer",
-		category: "flux",
-		order: 10,     // Make this the first link in the 'sites' category.
-		uriTemplate: "https://flux-cf-deployer.cfapps.io"
-	});
-	provider.registerService([
-			"orion.edit.validator",
-		],
-		editorService,
-		{
-			'pattern' : base + ".*",
-			'contentType' : [ "text/x-java-source" ]
-		}
-	);
-	provider.registerService([
-			"orion.edit.model",
-			"orion.edit.live"
-		],
-		editorService,
-		{
-			'contentType' : [ "text/plain" ]
-		}
-	);
-	
-	provider.registerService([
-   			"orion.edit.contentAssist",
-   			"orion.edit.hover"
-		],
-	    editorService,
-	    {
-	    	'contentType' : [ "text/x-java-source" ]
-	 	}
-	);
-	var openDeclaration = new OpenDeclaration(wsUrl, base);
-	provider.registerService("orion.edit.command",
-		openDeclaration,
-		{
-			'name': "Navigate to Definition",
-			'id': "org.eclipse.flux.navigateToDefintion",
-			/* 'img': "", */
-			'key': [ 114 ], /* F3 key */
-			/* 'validationProperties': [], */
-			'contentType': [ "text/x-java-source" ]
-			/* 'nls' : "", */
-			/* 'nameKey' : "", */
-			/* 'tooltipKey': "" */
-		}
-	);
+			imageDataURI: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAABuwAAAbsBOuzj4gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEqSURBVDiNpdMxS9thEAbwX/6Gbm6CkrVjoYuDhygoWfwEpW4dikLngpMgguDqEopjp4JfIHMHc5CWTlla2kkEhwwuBRFNhyQQ038SxZvu3ueeu/e5971Kr9fzHCuexX5KgcyslJ1XZknIzB18RA3n2I6IbmmBzJzHKjoRcZGZb/AFo92/ox4R1w8kZOYifqCJ35n5CZ/HyLCMD8OgOgIc4uXAf4HdKcpWhs7oEOtTCNMLZObGSPfH2FJmvoZKq9Waw1f94Y3bH/05HJRgHWxWsTeBfIu3+IZ1/0t8hf0CWxOueRQR7Yjo4T3+luS8K7BQAlziNDOHr9RFoyRvvkCrBKgNiqwN4rb+bxy3nwXOcDdBxqxVbRQR0dQf1hXuxxLKFugGv3AcESf/AFmNUKHs4+bxAAAAAElFTkSuQmCC",
+			order: 5
+		});
+		provider.registerServiceProvider("orion.page.link", null, {
+			id: "flux.deployer",
+			name: "CF Deployer",
+			category: "flux",
+			order: 10,     // Make this the first link in the 'sites' category.
+			uriTemplate: "https://flux-cf-deployer.cfapps.io"
+		});
+		provider.registerService([
+					"orion.edit.validator",
+				],
+				editorService,
+				{
+					'pattern': base + ".*",
+					'contentType': ["text/x-java-source"]
+				}
+		);
+		provider.registerService([
+					"orion.edit.model",
+					"orion.edit.live"
+				],
+				editorService,
+				{
+					'contentType': ["text/plain"]
+				}
+		);
 
-	var quickfixImpl = {
-	        execute: function(editorContext, context) {
+		provider.registerService([
+					"orion.edit.contentAssist",
+					"orion.edit.hover"
+				],
+				editorService,
+				{
+					'contentType': ["text/x-java-source"]
+				}
+		);
+		var openDeclaration = new OpenDeclaration(wsUrl, base);
+		provider.registerService("orion.edit.command",
+														 openDeclaration,
+				{
+					'name': "Navigate to Definition",
+					'id': "org.eclipse.flux.navigateToDefintion",
+					/* 'img': "", */
+					'key': [114], /* F3 key */
+					/* 'validationProperties': [], */
+					'contentType': ["text/x-java-source"]
+					/* 'nls' : "", */
+					/* 'nameKey' : "", */
+					/* 'tooltipKey': "" */
+				}
+		);
+
+		var quickfixImpl = {
+			execute: function (editorContext, context) {
 				if (!context.annotation)
 					return null;
 				if (context.annotation.id) {
 					editorService.applyQuickfix(editorContext, context);
-	        	}
-	        }
-	};
-	
-	var quickfixProp = {
+				}
+			}
+		};
+
+		var quickfixProp = {
 			id: "orion.css.quickfix.zeroQualifier",
 			image: "../images/compare-addition.gif",
 			scopeId: "orion.edit.quickfix",
@@ -145,8 +144,8 @@ function(Deferred,         PluginProvider, FluxEditor,   FluxFileSystem,   OpenD
 			tooltip: "Apply Quick Fix",
 			validationProperties: []
 		};
-	
-	provider.registerService("orion.edit.command", quickfixImpl, quickfixProp);
-	provider.connect();
 
+		provider.registerService("orion.edit.command", quickfixImpl, quickfixProp);
+		provider.connect();
+	})
 }); //define

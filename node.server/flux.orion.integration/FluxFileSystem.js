@@ -108,7 +108,7 @@ var FluxFileSystem = (function() {
 			//this._connectedToChannel = new Deferred();
 			//this.socket = io.connect(this._wsUrl);
 
-			var self = this;
+			//var self = this;
 
 	//		this.socket.on('connect', function() {
 	////			while (user && !self._connectedToChannel) {
