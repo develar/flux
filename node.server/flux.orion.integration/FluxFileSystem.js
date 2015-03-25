@@ -15,8 +15,6 @@ var Deferred = require('orion/Deferred');
 var io = require('socket.io');
 require('lib/sha1'); //Not AMD. Defines 'CryptoJS global.
 
-var stompClient = require('stomp-client');
-
 var authorize = require('authorize');
 
 function assignAncestry(parents, childrenDepthMap, depth) {
