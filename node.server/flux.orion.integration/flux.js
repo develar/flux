@@ -12,12 +12,12 @@
 /*global require window location console*/
 require.config({
   paths: {
-    "when": "../when-3.7.2",
-    "bluebird": "../bluebird.min-2.9.14",
+    "bluebird": "../bluebird-2.9.14.min",
     "socket.io": "../socket.io-1.3.4",
     "sockjs": "../sockjs-0.3.4.min",
-    "stomp": "../stomp.min-2.3.4",
-    "Deferred": "../orion/Deferred"
+    "stomp": "../stomp-2.3.4.min",
+    "Deferred": "../orion/Deferred",
+    "sha1": "../sha1-0.3.min"
   },
   shim: {
     'stomp': {
@@ -43,7 +43,7 @@ require(["orion/plugin", "FileSystem", "lib/domReady!", "stompClient"], function
   }
 
   var stompConnector = new stompClient.StompConnector();
-  stompConnector.connect(host, "defaultuser", "password").done(function () {
+  stompConnector.connect(host, "dev", "dev").done(function () {
     var base = "flux://" + host + ":" + wsPort + "/";
     var headers = {
       'Name': "Flux",
@@ -64,14 +64,14 @@ require(["orion/plugin", "FileSystem", "lib/domReady!", "stompClient"], function
 
 //    var editorService = new FluxEditor(wsUrl, base);
 //
-//    provider.registerServiceProvider("orion.page.link.category", null, {
-//      id: "flux",
-//      name: "Flux",
-////		nameKey: "Flux",
-////		nls: "orion-plugin/nls/messages",
-//      imageDataURI: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAABuwAAAbsBOuzj4gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEqSURBVDiNpdMxS9thEAbwX/6Gbm6CkrVjoYuDhygoWfwEpW4dikLngpMgguDqEopjp4JfIHMHc5CWTlla2kkEhwwuBRFNhyQQ038SxZvu3ueeu/e5971Kr9fzHCuexX5KgcyslJ1XZknIzB18RA3n2I6IbmmBzJzHKjoRcZGZb/AFo92/ox4R1w8kZOYifqCJ35n5CZ/HyLCMD8OgOgIc4uXAf4HdKcpWhs7oEOtTCNMLZObGSPfH2FJmvoZKq9Waw1f94Y3bH/05HJRgHWxWsTeBfIu3+IZ1/0t8hf0CWxOueRQR7Yjo4T3+luS8K7BQAlziNDOHr9RFoyRvvkCrBKgNiqwN4rb+bxy3nwXOcDdBxqxVbRQR0dQf1hXuxxLKFugGv3AcESf/AFmNUKHs4+bxAAAAAElFTkSuQmCC",
-//      order: 5
-//    });
+    provider.registerServiceProvider("orion.page.link.category", null, {
+      id: "flux",
+      name: "Flux",
+//		nameKey: "Flux",
+//		nls: "orion-plugin/nls/messages",
+      imageDataURI: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAABuwAAAbsBOuzj4gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEqSURBVDiNpdMxS9thEAbwX/6Gbm6CkrVjoYuDhygoWfwEpW4dikLngpMgguDqEopjp4JfIHMHc5CWTlla2kkEhwwuBRFNhyQQ038SxZvu3ueeu/e5971Kr9fzHCuexX5KgcyslJ1XZknIzB18RA3n2I6IbmmBzJzHKjoRcZGZb/AFo92/ox4R1w8kZOYifqCJ35n5CZ/HyLCMD8OgOgIc4uXAf4HdKcpWhs7oEOtTCNMLZObGSPfH2FJmvoZKq9Waw1f94Y3bH/05HJRgHWxWsTeBfIu3+IZ1/0t8hf0CWxOueRQR7Yjo4T3+luS8K7BQAlziNDOHr9RFoyRvvkCrBKgNiqwN4rb+bxy3nwXOcDdBxqxVbRQR0dQf1hXuxxLKFugGv3AcESf/AFmNUKHs4+bxAAAAAElFTkSuQmCC",
+      order: 5
+    });
 //    provider.registerServiceProvider("orion.page.link", null, {
 //      id: "flux.deployer",
 //      name: "CF Deployer",
